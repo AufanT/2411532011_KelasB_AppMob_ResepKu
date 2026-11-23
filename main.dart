@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/providers/favorite_provider.dart';
 import 'package:flutter_application_1/providers/theme_provider.dart';
+import 'package:flutter_application_1/services/recipe_service.dart';
 import 'package:flutter_application_1/widgets/identity_footer.dart';
 
 void main() {
@@ -10,7 +11,12 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => FavoriteProvider()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()), // Latihan 1 Modul 6
+        // Provider biasa: RecipeService tidak berubah, jadi tidak perlu notifyListeners
+        Provider(
+          create: (context) => RecipeService(),
+          dispose: (context, service) => service.close(),
+        ),
       ],
       child: const ResepKuApp(),
     ),
