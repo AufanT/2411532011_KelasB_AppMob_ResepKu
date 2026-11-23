@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_application_1/data/favorite_database.dart';
 import 'package:flutter_application_1/pages/home_page.dart';
 import 'package:flutter_application_1/providers/favorite_provider.dart';
-import 'package:flutter_application_1/providers/theme_provider.dart';
+import 'package:flutter_application_1/providers/settings_provider.dart';
 import 'package:flutter_application_1/services/recipe_service.dart';
 import 'package:flutter_application_1/widgets/identity_footer.dart';
 
-void main() {
+Future<void> main() async {
+  // Wajib sebelum memakai plugin di dalam main
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final settings = SettingsProvider();
+  final favorites = FavoriteProvider(FavoriteDatabase());
+  await Future.wait([settings.load(), favorites.load()]);
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => FavoriteProvider()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()), // Latihan 1 Modul 6
+        ChangeNotifierProvider.value(value: settings),
+        ChangeNotifierProvider.value(value: favorites),
         // Provider biasa: RecipeService tidak berubah, jadi tidak perlu notifyListeners
         Provider(
           create: (context) => RecipeService(),
@@ -25,25 +33,25 @@ void main() {
 
 class ResepKuApp extends StatelessWidget {
   const ResepKuApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    // watch: MaterialApp harus rebuild setiap kali tema berubah
-    final themeMode = context.watch<ThemeProvider>().themeMode;
+    final themeMode = context.watch<SettingsProvider>().themeMode;
     return MaterialApp(
       title: 'ResepKu',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: Colors.deepOrange,
-        fontFamily: 'Poppins',
+        fontFamily: 'Poppins', // didaftarkan di pubspec.yaml
       ),
       darkTheme: ThemeData(
         colorSchemeSeed: Colors.deepOrange,
-        fontFamily: 'Poppins',
         brightness: Brightness.dark,
+        fontFamily: 'Poppins',
       ),
       themeMode: themeMode,
       builder: (context, child) =>
-          IdentityFooter(child: child!), // tetap dipertahankan
+          IdentityFooter(child: child!), // footer NIM & nama (Modul 6)
       home: const HomePage(),
     );
   }

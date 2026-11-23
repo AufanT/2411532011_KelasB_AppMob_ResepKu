@@ -4,6 +4,7 @@ import 'package:flutter_application_1/models/recipe.dart';
 import 'package:flutter_application_1/pages/add_recipe_page.dart';
 import 'package:flutter_application_1/pages/search_page.dart';
 import 'package:flutter_application_1/pages/settings_page.dart';
+import 'package:flutter_application_1/providers/settings_provider.dart';
 import 'package:flutter_application_1/services/recipe_service.dart';
 import 'package:flutter_application_1/widgets/error_view.dart';
 import 'package:flutter_application_1/widgets/favorite_badge_button.dart';
@@ -18,7 +19,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _isGrid = false;
   late Future<List<Recipe>> _recipesFuture;
 
   @override
@@ -63,13 +63,20 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Pilihan tampilan kini dibaca dari SettingsProvider (tersimpan di HP)
+    final settings = context.watch<SettingsProvider>();
+    final isGrid = settings.isGrid;
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
             Image.asset('assets/images/logo.png', height: 32),
             const SizedBox(width: 8),
-            const Text('ResepKu'),
+            // Flexible: judul boleh mengecil bila AppBar penuh tombol (layar 360 dp)
+            const Flexible(
+              child: Text('ResepKu', overflow: TextOverflow.ellipsis),
+            ),
           ],
         ),
         actions: [
@@ -82,9 +89,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           IconButton(
-            tooltip: _isGrid ? 'Tampilan list' : 'Tampilan grid',
-            icon: Icon(_isGrid ? Icons.view_list : Icons.grid_view),
-            onPressed: () => setState(() => _isGrid = !_isGrid),
+            tooltip: isGrid ? 'Tampilan list' : 'Tampilan grid',
+            icon: Icon(isGrid ? Icons.view_list : Icons.grid_view),
+            // tidak perlu setState: setGrid memanggil notifyListeners
+            onPressed: () => settings.setGrid(!isGrid),
           ),
           const FavoriteBadgeButton(),
           IconButton(
@@ -119,7 +127,7 @@ class _HomePageState extends State<HomePage> {
           }
           return RefreshIndicator(
             onRefresh: _refresh,
-            child: _isGrid ? _buildGrid(recipes) : _buildList(recipes),
+            child: isGrid ? _buildGrid(recipes) : _buildList(recipes),
           );
         },
       ),
